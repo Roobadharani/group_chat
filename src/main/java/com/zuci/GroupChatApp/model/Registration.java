@@ -22,11 +22,11 @@ public class Registration {
     @Column(unique = true)
     @NotBlank(message = "mail id should not be blank")
     private String userMailId;
+    @Column(unique = true)
     @NotBlank(message = "user name  should not be blank")
     private String username;
     @NotBlank(message = "Password  should not be blank")
     private String userPassword;
     private long mobileNumber;
-    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-    private List<Role> roles;
+
 }

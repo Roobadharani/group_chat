@@ -1,0 +1,12 @@
+ *{
+ margin:0px;
+ padding:0px;
+ }
+  #navbar{
+       overflow: hidden;
+       background-color: rgb(73, 67, 248);
+       position: fixed;
+       top: 0;
+       width: 100%;
+
+    }
