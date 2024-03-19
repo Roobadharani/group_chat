@@ -1,10 +1,14 @@
 package com.zuci.GroupChatApp.service;
 
-import com.zuci.GroupChatApp.config.ChatSecurityConfig;
+import com.zuci.GroupChatApp.model.ChatMessagePojo;
+import com.zuci.GroupChatApp.model.Login;
 import com.zuci.GroupChatApp.model.Registration;
+import com.zuci.GroupChatApp.repository.ChatRepository;
 import com.zuci.GroupChatApp.repository.RegistrationRepository;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -16,31 +20,33 @@ public class RegistrationServiceImpl implements RegistrationService{
     @Autowired
     private RegistrationRepository registrationRepository;
     @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private ChatSecurityConfig chatSecurityConfig;
+    private ChatRepository chatRepository;
+
+
     @Override
-    public Registration createUser(Registration registration) {
-        registration.setUserPassword(passwordEncoder.encode(registration.getUserPassword()));
-        return registrationRepository.save(registration);
+    public ResponseEntity<Registration> addDetails(Registration registration) {
+            Registration register=registrationRepository.save(registration);
+            return new ResponseEntity<>(register, HttpStatus.CREATED);    }
+    @Override
+    public ResponseEntity<Boolean> findByname(Login login){
+        Optional<Registration> optional=registrationRepository.findByUsername(login.getUsername());
+        Boolean res=false;
+        if(optional.isPresent()){
+            res=true;
+        }
+
+        return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
+
     }
 
     @Override
-    public Registration addDetails(Registration registration) {
-
-        registration.setUserPassword(chatSecurityConfig.passwordEncoder().encode(registration.getUserPassword()));
-        return registrationRepository.save(registration);
-    }
-    @Override
-    public List<Registration> findBookingByUserId(int userId) {
-        Optional<Registration> optionalHotel = registrationRepository.findById(userId);
-        if(optionalHotel.isPresent()){
-            List<Registration> hotelList = optionalHotel
-                    .map(Collections::singletonList) // Converts to List
-                    .orElse(Collections.emptyList());
-            return hotelList;}
+    public ResponseEntity<List> getAllChats() {
+        List<ChatMessagePojo> allChat=chatRepository.findAll();
+        if(!allChat.isEmpty()){
+            return new ResponseEntity<>(allChat,HttpStatus.ACCEPTED);
+        }
         else{
-            throw new RuntimeException();
+            return null;
         }
     }
 }
