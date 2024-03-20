@@ -4,6 +4,19 @@ const loginForm = document.querySelector("form.login");
 const loginBtn = document.querySelector("label.login");
 const signupBtn = document.querySelector("label.signup");
 const signupLink = document.querySelector("form .signup-link a");
+var usernamePage = document.querySelector('#wrapper');
+var chatPage = document.querySelector('#chat-page');
+var usernameForm = document.querySelector('#usernameForm');
+var messageForm = document.querySelector('#messageForm');
+var messageInput = document.querySelector('#message');
+var messageArea = document.querySelector('#messageArea');
+var connectingElement = document.querySelector('.connecting');
+var password=document.querySelector('#login-password').value.trim();
+var navbar=document.querySelector("#navbar-placeholder");
+var addUserName=document.querySelector("#profile");
+var stompClient = null;
+var username = null;
+
 
 signupBtn.onclick = (() => {
    loginForm.style.marginLeft = "-50%";
@@ -51,6 +64,8 @@ fetch('http://localhost:8086/signup', requestOptions)
 
 });
 
+
+
 var username="";
 //fetch POST for login
 document.getElementById("login-form").addEventListener("submit", function(event){
@@ -83,39 +98,25 @@ fetch('http://localhost:8086/login', requestOptions)
       const username = responseData.username;
     })
     .then(text => {
-        // Use the response text for further processing
-
         if (username !== null) {
-          alert("Welcome to webchat! "+username+"...");
-
+          connect();
         } else {
             alert("Username or Password not matched!");
             throw new Error('Login failed. Please check your credentials.');
         }
     })
     .catch(error => {
-        console.error(error);
+       alert(error);
     });
-
   })
-  var usernamePage = document.querySelector('#wrapper');
-var chatPage = document.querySelector('#chat-page');
-var usernameForm = document.querySelector('#usernameForm');
-var messageForm = document.querySelector('#messageForm');
-var messageInput = document.querySelector('#message');
-var messageArea = document.querySelector('#messageArea');
-var connectingElement = document.querySelector('.connecting');
-var password=document.querySelector('#login-password').value.trim();
-var navbar=document.querySelector("#navbar-placeholder");
-var stompClient = null;
-var username = null;
+
+
 
 var colors = [
     '#2196F3', '#32c787', '#00BCD4', '#ff5652',
     '#ffc107', '#ff85af', '#FF9800', '#39bbb0'
 ];
 
-document.getElementById("login-form").addEventListener('submit', connect, true)
 messageForm.addEventListener('click', sendMessage, true)
 
 function connect() {
@@ -133,7 +134,6 @@ console.log(username);
         stompClient.connect({}, onConnected, onError);
   }
 }
-
 
 
 function onConnected() {
@@ -169,6 +169,8 @@ function sendMessage(event) {
     }
     event.preventDefault();
 }
+
+
 
 
 function onMessageReceived(payload) {
@@ -220,25 +222,26 @@ function getAvatarColor(messageSender) {
     var index = Math.abs(hash % colors.length);
     return colors[index];
 }
-
-function getAllData(){
-fetch("http://localhost:8086/msg",
-{ method: 'GET',
-  headers: {'Content-Type': 'application/json'}
-})
-.then((res)=> displayChats(res.json()))
-
-.then((data)=>console.log(data))
-.catch((error)=>console.log(error))
+function getAllData() {
+    fetch("http://localhost:8086/msg")
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return res.json(); // Parse the JSON data here
+        })
+        .then((msg) => {
+            console.log(msg); // Log the parsed JSON data
+            displayChats(msg); // Pass the parsed JSON data to displayChats function
+        })
+        .catch((error) => alert(error));
 }
-function displayChats(payload){
 
-     var message = JSON.parse(payload.body);
-
+function displayChats(messages) {
+    messages.forEach(message => {
         var messageElement = document.createElement('li');
         messageElement.classList.add('chat-message');
-           if(message.type!="JOIN"||message.type!="LEAVE")
-           {
+
         var avatarElement = document.createElement('i');
         var avatarText = document.createTextNode(message.sender[0]);
         avatarElement.appendChild(avatarText);
@@ -250,12 +253,61 @@ function displayChats(payload){
         var usernameText = document.createTextNode(message.sender);
         usernameElement.appendChild(usernameText);
         messageElement.appendChild(usernameElement);
-    }
 
-    var textElement = document.createElement('p');
-    var messageText = document.createTextNode(message.content);
-    textElement.appendChild(messageText);
+        var textElement = document.createElement('p');
+        var messageText = document.createTextNode(message.content);
+        textElement.appendChild(messageText);
 
-    messageElement.appendChild(textElement);
+        messageElement.appendChild(textElement);
 
-    messageArea.appendChild(messageElement);}
+    messageArea.appendChild(messageElement);
+    messageArea.scrollTop = messageArea.scrollHeight;
+
+    });
+}
+//
+//document.getElementById('profile').addEventListener('mouseover', function() {
+//        // Simulate fetching user information from the database (replace this with your actual API call)
+//        setTimeout(function() {
+//            // Sample user information (replace with actual data retrieved from the database)
+//            fetch("http://localhost:8086/")
+//            // Build HTML for the dropdown content
+//            var dropdownContent = '<a><strong>Name:</strong> ' + userInfo.name + '</a>';
+//            dropdownContent += '<a><strong>Email:</strong> ' + userInfo.email + '</a>';
+//            // Add more user information to the dropdown content as needed
+//
+//            // Update the dropdown content
+//            document.getElementById('profileDropdown').innerHTML = dropdownContent;
+//        }, 500); // Simulated delay of 500 milliseconds (replace with actual API call)
+//    });
+
+//logout
+document.getElementById("logout").addEventListener('click',function(){
+
+const myHeaders=new Headers();
+myHeaders.append("Content-Type", "application/json");
+
+const raw= JSON.stringify({
+  "username" : username,
+});
+
+const requestOptions={
+  method: "DELETE",
+  headers: myHeaders,
+  body:raw,
+  redirect: "follow"
+};
+
+fetch('http://localhost:8086/logout', requestOptions)
+  .then((response)=> console.log(response.text()))
+  .then(msg=>console.log(msg))
+  .then(alert("loggedOut Successfully!"))
+  .catch((error)=> console.error(error))
+});
+
+
+//one to one chat
+//show name of that user
+//history only loaded to that user
+
+

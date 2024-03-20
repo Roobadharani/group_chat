@@ -1,5 +1,8 @@
 package com.zuci.GroupChatApp.service;
 
+import com.zuci.GroupChatApp.exception.LogOutException;
+import com.zuci.GroupChatApp.exception.UserNotFoundException;
+import com.zuci.GroupChatApp.exception.WrongPasswordException;
 import com.zuci.GroupChatApp.model.ChatMessagePojo;
 import com.zuci.GroupChatApp.model.Login;
 import com.zuci.GroupChatApp.model.Registration;
@@ -27,16 +30,23 @@ public class RegistrationServiceImpl implements RegistrationService{
     public ResponseEntity<Registration> addDetails(Registration registration) {
             Registration register=registrationRepository.save(registration);
             return new ResponseEntity<>(register, HttpStatus.CREATED);    }
+
+
     @Override
     public ResponseEntity<Boolean> findByname(Login login){
         Optional<Registration> optional=registrationRepository.findByUsername(login.getUsername());
-        Boolean res=false;
         if(optional.isPresent()){
-            res=true;
+            Registration registration=optional.get();
+            if(registration.getUserPassword().equals(login.getPassword())) {
+                return new ResponseEntity<>(true, HttpStatus.ACCEPTED);
+            }
+            else{
+                throw new WrongPasswordException();
+            }
         }
-
-        return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
-
+        else {
+             throw new UserNotFoundException();
+        }
     }
 
     @Override
@@ -48,5 +58,18 @@ public class RegistrationServiceImpl implements RegistrationService{
         else{
             return null;
         }
+    }
+
+    @Override
+    public ResponseEntity<Registration> deleteUser(Login login) {
+        Optional<Registration> optional=registrationRepository.findByUsername(login.getUsername());
+        System.out.println(optional);
+        if(optional.isPresent()){
+           Registration value=optional.get();
+           System.out.println(value);
+           registrationRepository.deleteById(value.getUserId());
+           return new ResponseEntity<>(value,HttpStatus.ACCEPTED);
+        }
+        else throw new LogOutException();
     }
 }

@@ -5,6 +5,7 @@ import com.zuci.GroupChatApp.model.Login;
 import com.zuci.GroupChatApp.model.Registration;
 import com.zuci.GroupChatApp.service.RegistrationService;
 import jakarta.validation.Valid;
+import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,11 @@ public class RegistrationController {
     @GetMapping("/msg")
     public ResponseEntity<List> getAllChats(){
         return registrationService.getAllChats();
+    }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<Registration> deleteUser(@RequestBody Login login){
+        return registrationService.deleteUser(login);
     }
 }
 

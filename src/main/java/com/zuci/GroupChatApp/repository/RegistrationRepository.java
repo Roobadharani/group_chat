@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface RegistrationRepository extends JpaRepository<Registration,Integer> {
-    Optional findByUsername(String username);
+    Optional<Registration> findByUsername(String username);
+    //Registration deleteByUsername(String username);
 }
